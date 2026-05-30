@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recruitment AI — HR Analytics</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy-950: #050b1a;
+    --navy-900: #0a1628;
+    --navy-800: #0f2040;
+    --navy-700: #162d56;
+    --navy-600: #1e3a6e;
+    --navy-500: #254888;
+    --accent-blue: #2d8cf0;
+    --accent-cyan: #00d4ff;
+    --accent-teal: #00b8a9;
+    --accent-purple: #7c5cbf;
+    --text-primary: #e8edf5;
+    --text-secondary: #8fa3bf;
+    --text-muted: #4a6080;
+    --border: rgba(255,255,255,0.07);
+    --card-bg: rgba(255,255,255,0.04);
+    --card-border: rgba(255,255,255,0.08);
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--navy-950);
+    color: var(--text-primary);
+    font-family: var(--font);
+    font-size: 14px;
+    overflow: hidden;
+  }
+
+  .layout {
+    display: flex;
+    height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--navy-900);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-logo .logo-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+  }
+
+  .sidebar-logo .logo-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-family: var(--mono);
+  }
+
+  .sidebar-section {
+    padding: 16px 12px 8px;
+  }
+
+  .sidebar-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    font-weight: 400;
+    text-decoration: none;
+    margin-bottom: 2px;
+  }
+
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: var(--text-primary); }
+
+  .nav-item.active {
+    background: rgba(45, 140, 240, 0.15);
+    color: var(--accent-blue);
+    font-weight: 500;
+  }
+
+  .nav-item .nav-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.8;
+  }
+
+  .nav-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-left: auto;
+  }
+
+  .dot-green { background: #22c55e; }
+  .dot-amber { background: #f59e0b; }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    padding: 16px 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .sidebar-user:hover { background: rgba(255,255,255,0.05); }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .user-info .user-name { font-size: 13px; font-weight: 500; }
+  .user-info .user-role { font-size: 11px; color: var(--text-muted); }
+
+  /* ── Main ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--navy-900);
+    flex-shrink: 0;
+  }
+
+  .topbar-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .filter-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .filter-pill:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.16); color: var(--text-primary); }
+
+  .filter-pill svg { width: 14px; height: 14px; }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: #22c55e;
+    font-family: var(--mono);
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--navy-700) transparent;
+  }
+
+  /* ── KPI Row ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .kpi-card:hover { border-color: rgba(255,255,255,0.16); }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .kpi-card.blue::before { background: var(--accent-blue); }
+  .kpi-card.cyan::before { background: var(--accent-cyan); }
+  .kpi-card.teal::before { background: var(--accent-teal); }
+  .kpi-card.purple::before { background: var(--accent-purple); }
+
+  .kpi-label {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .kpi-value {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 10px;
+    font-family: var(--mono);
+  }
+
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .kpi-trend {
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: var(--mono);
+  }
+
+  .trend-up { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+  .trend-down { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+  /* ── Charts Row ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .chart-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .chart-card-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .chart-card-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .chart-big-num {
+    font-size: 28px;
+    font-weight: 600;
+    font-family: var(--mono);
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+  }
+
+  .chart-big-unit {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-left: 4px;
+  }
+
+  .chart-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .chart-tab {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+
+  .chart-tab.active {
+    background: rgba(45, 140, 240, 0.2);
+    color: var(--accent-blue);
+    font-weight: 500;
+  }
+
+  /* ── Bottom Row ── */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* ── Stage Funnel ── */
+  .funnel-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .funnel-item:last-child { border-bottom: none; }
+
+  .funnel-label {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    width: 130px;
+    flex-shrink: 0;
+  }
+
+  .funnel-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .funnel-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .funnel-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--mono);
+    width: 36px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .funnel-pct {
+    font-size: 11px;
+    color: var(--text-muted);
+    width: 38px;
+    text-align: right;
+    flex-shrink: 0;
+    font-family: var(--mono);
+  }
+
+  /* ── Candidates Table ── */
+  .candidates-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .candidates-table th {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .candidates-table td {
+    padding: 10px 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .candidates-table tr:last-child td { border-bottom: none; }
+
+  .candidates-table tr:hover td { background: rgba(255,255,255,0.03); color: var(--text-primary); }
+
+  .cand-name { font-weight: 500; color: var(--text-primary) !important; }
+
+  .score-badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+
+  .score-high { background: rgba(0, 180, 169, 0.15); color: #00b8a9; }
+  .score-mid  { background: rgba(45, 140, 240, 0.15); color: #2d8cf0; }
+  .score-low  { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 500;
+  }
+
+  .status-shortlisted { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
+  .status-pending     { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+  .status-declined    { background: rgba(239, 68, 68, 0.10); color: #ef4444; }
+  .status-interview   { background: rgba(124, 92, 191, 0.15); color: #a78bfa; }
+
+  .pipeline-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .pipeline-btn svg { margin-bottom: 6px; }
+  .pipeline-btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.2); }
+  .pipeline-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .pipeline-btn-run-all { background: rgba(45,140,240,0.12); border-color: rgba(45,140,240,0.3); color: var(--accent-blue); }
+  .pipeline-btn-run-all:hover { background: rgba(45,140,240,0.2); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">Recruitment AI</div>
+      <div class="logo-sub">BNU · CSC-233</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main</div>
+      <a class="nav-item active" href="#" data-page="dashboard">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+        <span class="nav-dot dot-green" style="margin-left:auto"></span>
+      </a>
+      <a class="nav-item" href="#" data-page="candidates">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Candidates
+      </a>
+      <a class="nav-item" href="#" data-page="positions">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Positions
+      </a>
+      <a class="nav-item" href="#" data-page="pipeline">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Pipeline
+        <span class="nav-dot dot-amber" style="margin-left:auto"></span>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item" href="#" data-page="links">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Quick Links
+      </a>
+      <a class="nav-item" href="#" data-page="interviews">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Interviews
+      </a>
+      <a class="nav-item" href="#" data-page="settings">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Settings
+      </a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="avatar">HR</div>
+        <div class="user-info">
+          <div class="user-name">HR Manager</div>
+          <div class="user-role">hrwala@gmail.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Pipeline Analytics</div>
+      <div class="topbar-right">
+        <div class="live-badge">
+          <span class="live-dot"></span>
+          LIVE
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══ PAGE: DASHBOARD ══ -->
+      <div class="page" id="page-dashboard">
+
+      <!-- KPI Cards -->
+      <div class="kpi-row">
+        <div class="kpi-card blue">
+          <div class="kpi-label">Total Applied</div>
+          <div class="kpi-value" id="kpi-total">—</div>
+          <div class="kpi-sub" style="min-height:18px"></div>
+        </div>
+        <div class="kpi-card cyan">
+          <div class="kpi-label">CV Shortlisted</div>
+          <div class="kpi-value" id="kpi-cv">—</div>
+          <div class="kpi-sub" style="min-height:18px"></div>
+        </div>
+        <div class="kpi-card teal">
+          <div class="kpi-label">MCQ Passed</div>
+          <div class="kpi-value" id="kpi-mcq">—</div>
+          <div class="kpi-sub" style="min-height:18px"></div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">Voice Shortlisted</div>
+          <div class="kpi-value" id="kpi-voice">—</div>
+          <div class="kpi-sub" style="min-height:18px"></div>
+        </div>
+        <div class="kpi-card" style="border-top:2px solid #ef4444">
+          <div class="kpi-label">CVs Rejected</div>
+          <div class="kpi-value" id="kpi-rejected" style="color:#ef4444">—</div>
+          <div class="kpi-sub" style="min-height:18px"></div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+
+        <!-- Score Trend Chart -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-big-num">
+                <span id="avg-cv-score">—</span><span class="chart-big-unit">avg score</span>
+              </div>
+              <div class="chart-card-subtitle">CV score distribution over time</div>
+            </div>
+            <div class="chart-tabs">
+              <div class="chart-tab active">CV</div>
+              <div class="chart-tab">MCQ</div>
+              <div class="chart-tab">Voice</div>
+            </div>
+          </div>
+          <div style="position:relative;height:180px;">
+            <canvas id="trendChart" role="img" aria-label="Score trend line chart showing candidate scores over time"></canvas>
+          </div>
+        </div>
+
+        <!-- Donut Chart -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-big-num">
+                <span id="shortlist-rate">—</span><span class="chart-big-unit">%</span>
+              </div>
+              <div class="chart-card-subtitle">Overall shortlist rate</div>
+            </div>
+          </div>
+          <div style="position:relative;height:140px;display:flex;align-items:center;justify-content:center;">
+            <canvas id="donutChart" role="img" aria-label="Donut chart showing pipeline stage distribution"></canvas>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+            <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted)"><span style="width:8px;height:8px;border-radius:2px;background:#2d8cf0;display:inline-block"></span>Applied</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted)"><span style="width:8px;height:8px;border-radius:2px;background:#00d4ff;display:inline-block"></span>Shortlisted</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted)"><span style="width:8px;height:8px;border-radius:2px;background:#00b8a9;display:inline-block"></span>MCQ</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted)"><span style="width:8px;height:8px;border-radius:2px;background:#7c5cbf;display:inline-block"></span>Voice</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Row -->
+      <div class="bottom-row">
+
+        <!-- Stage Funnel -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Stage Conversion</div>
+              <div class="chart-card-subtitle">Candidate drop-off per stage</div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);font-family:var(--mono)" id="last-updated-label">—</div>
+          </div>
+          <div id="funnel-list"></div>
+
+          <!-- Mini bar chart below funnel -->
+          <div style="margin-top:20px;position:relative;height:90px;">
+            <canvas id="barChart" role="img" aria-label="Bar chart showing score distribution across stages"></canvas>
+          </div>
+        </div>
+
+        <!-- Candidates Table -->
+        <div class="chart-card" style="overflow:auto;">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Top Candidates</div>
+              <div class="chart-card-subtitle">Ranked by overall score</div>
+            </div>
+            <div class="filter-pill" style="font-size:11.5px;padding:4px 10px;">
+              <svg style="width:12px;height:12px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              Search
+            </div>
+          </div>
+          <table class="candidates-table">
+            <thead>
+              <tr>
+                <th>Candidate</th>
+                <th>CV</th>
+                <th>MCQ</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="candidates-body"></tbody>
+          </table>
+        </div>
+
+      </div>
+
+      </div><!-- end page-dashboard -->
+
+      <!-- ══ PAGE: CANDIDATES ══ -->
+      <div class="page" id="page-candidates" style="display:none">
+        <div class="chart-card" style="margin-bottom:16px">
+          <div class="chart-card-header">
+            <div><div class="chart-card-title">All Candidates</div><div id="candidates-subtitle" class="chart-card-subtitle">Loading...</div></div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="candidates-search" type="text" placeholder="Search name or email..." style="background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:6px 12px;color:var(--text-primary);font-size:12.5px;width:220px;outline:none">
+              <select id="candidates-filter" style="background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:6px 10px;color:var(--text-secondary);font-size:12.5px;outline:none">
+                <option value="all">All Statuses</option>
+                <option value="mcq_passed">MCQ Passed</option>
+                <option value="shortlisted">Shortlisted</option>
+                <option value="not_selected">Declined</option>
+                <option value="interviewing">Interviewing</option>
+                <option value="interview_done">Interview Done</option>
+                <option value="scored">Scored</option>
+                <option value="received">Received</option>
+              </select>
+            </div>
+          </div>
+          <table class="candidates-table">
+            <thead><tr><th>Candidate</th><th>Job</th><th>CV Score</th><th>MCQ Score</th><th>Voice Score</th><th>Status</th></tr></thead>
+            <tbody id="all-candidates-body"><tr><td colspan="6" style="color:var(--text-muted);text-align:center;padding:24px">Loading candidates...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: POSITIONS ══ -->
+      <div class="page" id="page-positions" style="display:none">
+
+        <!-- Create Job Form (collapsible) -->
+        <div class="chart-card" style="margin-bottom:16px">
+          <div class="chart-card-header" style="cursor:pointer" onclick="document.getElementById('create-job-form').style.display=document.getElementById('create-job-form').style.display==='none'?'block':'none'">
+            <div><div class="chart-card-title">+ Create New Position</div><div class="chart-card-subtitle">Click to expand</div></div>
+          </div>
+          <div id="create-job-form" style="display:none;margin-top:4px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+              <div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:5px">Job Title *</div>
+                <input id="nj-title" type="text" placeholder="e.g. Backend Developer" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-size:13px;outline:none">
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:5px">Required Education</div>
+                <input id="nj-education" type="text" placeholder="e.g. Bachelor in Computer Science" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-size:13px;outline:none">
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:5px">Required Skills (comma-separated)</div>
+                <input id="nj-skills" type="text" placeholder="e.g. Python, FastAPI, MongoDB" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-size:13px;outline:none">
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:5px">Min. Experience (years)</div>
+                <input id="nj-exp" type="number" value="1" min="0" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-size:13px;outline:none">
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:5px">Shortlist Threshold (0-100)</div>
+                <input id="nj-threshold" type="number" value="65" min="0" max="100" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-size:13px;outline:none">
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:5px">MCQ Deadline (days)</div>
+                <input id="nj-mcq-days" type="number" value="3" min="1" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-size:13px;outline:none">
+              </div>
+              <div style="grid-column:span 2">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:5px">MCQ Test Form URL</div>
+                <input id="nj-mcq-url" type="url" placeholder="https://docs.google.com/forms/..." style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-size:13px;outline:none">
+              </div>
+              <div style="grid-column:span 2">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:5px">MCQ Response Sheet ID</div>
+                <input id="nj-mcq-sheet" type="text" placeholder="Google Sheets ID from URL" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-size:13px;outline:none">
+              </div>
+              <div style="grid-column:span 2">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:5px">Job Description</div>
+                <textarea id="nj-desc" rows="3" placeholder="Describe the role and responsibilities..." style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-size:13px;outline:none;resize:vertical"></textarea>
+              </div>
+              <div style="grid-column:span 2">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:5px">Values Prompt</div>
+                <textarea id="nj-values" rows="2" placeholder="Describe company values to look for in candidates..." style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-size:13px;outline:none;resize:vertical"></textarea>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <button onclick="submitNewJob()" style="background:var(--accent-blue);border:none;border-radius:8px;padding:10px 24px;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Create Position</button>
+              <div id="nj-status" style="font-size:13px;color:var(--text-muted)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Job Cards -->
+        <div id="positions-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+          <div style="color:var(--text-muted);font-size:13px;padding:20px">Loading positions...</div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: PIPELINE ══ -->
+      <div class="page" id="page-pipeline" style="display:none">
+
+        <!-- Run Controls -->
+        <div class="chart-card" style="margin-bottom:16px">
+          <div class="chart-card-header">
+            <div><div class="chart-card-title">Run Pipeline</div><div class="chart-card-subtitle">Trigger individual stages or the full pipeline</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+            <button class="pipeline-btn" onclick="runStage('fetch','Fetch CVs from Google Drive')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Fetch CVs
+              <span style="font-size:11px;color:rgba(255,255,255,0.5);display:block;margin-top:2px">Download from Drive</span>
+            </button>
+            <button class="pipeline-btn" onclick="runStage('extract','Extract CV Text')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Extract Text
+              <span style="font-size:11px;color:rgba(255,255,255,0.5);display:block;margin-top:2px">Parse PDF &amp; DOCX</span>
+            </button>
+            <button class="pipeline-btn" onclick="runStage('score','Score CVs with AI')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Score CVs
+              <span style="font-size:11px;color:rgba(255,255,255,0.5);display:block;margin-top:2px">LLM 7-parameter</span>
+            </button>
+            <button class="pipeline-btn" onclick="runStage('mcq','Evaluate MCQ Responses')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              Evaluate MCQ
+              <span style="font-size:11px;color:rgba(255,255,255,0.5);display:block;margin-top:2px">Score test responses</span>
+            </button>
+            <button class="pipeline-btn" onclick="runStage('notify','Send Email Notifications')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Send Emails
+              <span style="font-size:11px;color:rgba(255,255,255,0.5);display:block;margin-top:2px">Notify candidates</span>
+            </button>
+            <button class="pipeline-btn pipeline-btn-run-all" onclick="runStage('run-all','Run Full Pipeline')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run All Stages
+              <span style="font-size:11px;color:rgba(255,255,255,0.6);display:block;margin-top:2px">Full pipeline</span>
+            </button>
+          </div>
+          <div id="pipeline-log" style="background:rgba(0,0,0,0.3);border-radius:8px;padding:14px;font-family:var(--mono);font-size:12px;color:var(--text-muted);min-height:60px;max-height:160px;overflow-y:auto">
+            Ready. Click a stage to run.
+          </div>
+        </div>
+
+        <!-- Live Funnel -->
+        <div class="chart-card">
+          <div class="chart-card-header"><div><div class="chart-card-title">Live Pipeline Status</div><div class="chart-card-subtitle">Candidates currently in each stage</div></div></div>
+          <div id="funnel-list-full"></div>
+          <div style="margin-top:20px;position:relative;height:200px">
+            <canvas id="pipelineBarChart" role="img" aria-label="Pipeline stage bar chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: LINKS ══ -->
+      <div class="page" id="page-links" style="display:none">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div><div class="chart-card-title">Quick Links</div><div class="chart-card-subtitle">Direct access to all Google integrations</div></div>
+          </div>
+          <div id="links-page-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+            <div style="color:var(--text-muted);font-size:13px;padding:12px">Loading links...</div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ══ PAGE: LINKS ══ -->
+      <div class="page" id="page-links" style="display:none">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div><div class="chart-card-title">Quick Links</div><div class="chart-card-subtitle">Direct access to all Google integrations</div></div>
+          </div>
+          <div id="links-page-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+            <div style="color:var(--text-muted);font-size:13px;padding:12px">Loading links...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: INTERVIEWS ══ -->
+      <div class="page" id="page-interviews" style="display:none">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div><div class="chart-card-title">Voice Interview Sessions</div><div id="interviews-subtitle" class="chart-card-subtitle">Loading...</div></div>
+          </div>
+          <table class="candidates-table">
+            <thead><tr><th>Candidate</th><th>Email</th><th>Job</th><th>Applied</th><th>CV Score</th><th>MCQ Score</th><th>Voice Score</th><th>Status</th></tr></thead>
+            <tbody id="interviews-body"><tr><td colspan="8" style="color:var(--text-muted);text-align:center;padding:24px">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: SETTINGS ══ -->
+      <div class="page" id="page-settings" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-card-title" style="margin-bottom:16px">Scoring Thresholds</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">CV Shortlist Threshold</div><div style="display:flex;align-items:center;gap:10px"><input type="range" min="0" max="100" value="65" style="flex:1"><span style="font-size:13px;font-family:var(--mono);color:var(--text-primary);width:28px">65</span></div></div>
+              <div><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">MCQ Pass Threshold</div><div style="display:flex;align-items:center;gap:10px"><input type="range" min="0" max="100" value="60" style="flex:1"><span style="font-size:13px;font-family:var(--mono);color:var(--text-primary);width:28px">60</span></div></div>
+              <div><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Voice Interview Threshold</div><div style="display:flex;align-items:center;gap:10px"><input type="range" min="0" max="100" value="50" style="flex:1"><span style="font-size:13px;font-family:var(--mono);color:var(--text-primary);width:28px">50</span></div></div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title" style="margin-bottom:16px">System Config</div>
+            <div style="display:flex;flex-direction:column;gap:12px;font-size:13px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-secondary)">LLM Model</span><span style="color:var(--accent-blue);font-family:var(--mono)">llama3</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-secondary)">Sender Email</span><span style="color:var(--text-primary);font-family:var(--mono)">fatimahhadeell@gmail.com</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-secondary)">Poll Interval</span><span style="color:var(--text-primary);font-family:var(--mono)">5 min</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0"><span style="color:var(--text-secondary)">MCQ Deadline</span><span style="color:var(--text-primary);font-family:var(--mono)">3 days</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const LOCAL_IP = '192.168.18.14';
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://127.0.0.1:8000'
+  : `http://${LOCAL_IP}:8000`;
+
+const MOCK = {
+  stats: {
+    total: 184, cv_shortlisted: 76, mcq_passed: 42, voice_shortlisted: 19,
+    avg_cv_score: 63.4, shortlist_rate: 41
+  },
+  funnel: [
+    { label: 'Applications Received', count: 184, color: '#2d8cf0' },
+    { label: 'CV Shortlisted',        count: 76,  color: '#00d4ff' },
+    { label: 'MCQ Passed',            count: 42,  color: '#00b8a9' },
+    { label: 'Voice Shortlisted',     count: 19,  color: '#7c5cbf' },
+    { label: 'Final Offer',           count: 6,   color: '#22c55e' },
+  ],
+  trend: {
+    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    cv:    [58,65,61,70,63,68,72],
+    mcq:   [52,60,55,65,58,62,67],
+    voice: [45,50,48,57,52,55,60],
+  },
+  candidates: [
+    { name: 'Fatima A.',   job: 'Software Eng', cv: 82, mcq: 78, status: 'shortlisted' },
+    { name: 'Adeel K.',    job: 'Software Eng', cv: 77, mcq: 72, status: 'interview' },
+    { name: 'Sara M.',     job: 'Data Analyst', cv: 74, mcq: 80, status: 'shortlisted' },
+    { name: 'Usman R.',    job: 'Backend Dev',  cv: 69, mcq: 65, status: 'pending' },
+    { name: 'Ayesha B.',   job: 'Frontend Dev', cv: 65, mcq: 58, status: 'pending' },
+    { name: 'Ahmed N.',    job: 'Software Eng', cv: 44, mcq: null, status: 'declined' },
+  ]
+};
+
+async function fetchStats() {
+  try {
+    const r = await fetch(`${API}/api/v1/stats`);
+    if (!r.ok) throw new Error('API error');
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+async function fetchCandidates() {
+  try {
+    const jobsRes = await fetch(`${API}/api/v1/jobs`);
+    const jobsData = await jobsRes.json();
+    const jobs = jobsData.jobs ?? jobsData;
+    if (!jobs || !jobs.length) return [];
+    const all = [];
+    for (const job of jobs) {
+      try {
+        const res = await fetch(`${API}/api/v1/jobs/${job._id}/candidates`);
+        if (!res.ok) continue;
+        const data = await res.json();
+        const cands = Array.isArray(data) ? data : (data.candidates ?? []);
+        cands.forEach(c => c._job_title = job.title);
+        all.push(...cands);
+      } catch(e) { console.error('job candidates error:', e); continue; }
+    }
+    return all;
+  } catch(e) {
+    console.error('fetchCandidates error:', e);
+    return [];
+  }
+}
+
+async function loadDashboard() {
+  const stats = await fetchStats();
+  const candidates = await fetchCandidates();
+
+  // ── Map real API response ──
+  // CV Shortlisted = anyone who passed the CV stage (status has moved beyond "scored")
+  const CV_PASSED_STATUSES = ['shortlisted','mcq_passed','interviewing','interview_done','interview_complete'];
+  const total    = stats?.candidates?.total ?? candidates.length ?? 0;
+  const cvSL     = candidates.filter(c => CV_PASSED_STATUSES.includes(c.status)).length || stats?.candidates?.shortlisted || 0;
+  const mcqP     = candidates.filter(c => ['mcq_passed','interviewing','interview_done','interview_complete'].includes(c.status)).length;
+  const voiceSL  = candidates.filter(c => ['interviewing','interview_done','interview_complete'].includes(c.status)).length;
+  const scores   = candidates.map(c => c.final_score).filter(s => s != null);
+  const mcqScores = candidates.map(c => c.mcq_score).filter(s => s != null);
+  const avgCV    = scores.length ? (scores.reduce((a,b) => a+b, 0) / scores.length) : 0;
+
+  document.getElementById('kpi-total').textContent   = total;
+  document.getElementById('kpi-cv').textContent      = cvSL;
+  document.getElementById('kpi-mcq').textContent     = mcqP;
+  const rejected = candidates.filter(c => c.status === 'not_selected').length;
+  document.getElementById('kpi-voice').textContent    = voiceSL;
+  document.getElementById('kpi-rejected').textContent = rejected;
+  const rejRate = total > 0 ? Math.round((rejected / total) * 100) : 0;
+  // rejected rate element removed from UI
+  document.getElementById('avg-cv-score').textContent = avgCV.toFixed(1);
+
+  const cvRate  = total  > 0 ? Math.round((cvSL  / total) * 100) : 0;
+  const mcqRate = cvSL   > 0 ? Math.round((mcqP  / cvSL)  * 100) : 0;
+  const vRate   = mcqP   > 0 ? Math.round((voiceSL / mcqP) * 100) : 0;
+
+  // rate elements removed from UI
+
+  document.getElementById('shortlist-rate').textContent = cvRate;
+
+  document.getElementById('last-updated-label').textContent =
+    new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+  buildFunnel(total, cvSL, mcqP, voiceSL);
+  buildTrendChart();
+  buildDonutChart(total, cvSL, mcqP, voiceSL);
+  buildBarChart(scores);
+  buildCandidatesTableLive(candidates);
+
+  setTimeout(loadDashboard, 60000);
+}
+
+function buildCandidatesTableLive(candidates) {
+  if (!candidates.length) { buildCandidatesTable(); return; }
+  const tbody = document.getElementById('candidates-body');
+  const statusMap = {
+    shortlisted:    '<span class="status-pill status-shortlisted">● Shortlisted</span>',
+    mcq_passed:     '<span class="status-pill status-shortlisted">● MCQ Passed</span>',
+    not_selected:   '<span class="status-pill status-declined">● Declined</span>',
+    interviewing:   '<span class="status-pill status-interview">● Interview</span>',
+    interview_done: '<span class="status-pill status-interview">● Interview Done</span>',
+    received:       '<span class="status-pill status-pending">● Received</span>',
+    processing:     '<span class="status-pill status-pending">● Processing</span>',
+    scored:         '<span class="status-pill status-pending">● Scored</span>',
+    error:          '<span class="status-pill status-declined">● Error</span>',
+  };
+  const scoreClass = s => s >= 75 ? 'score-high' : s >= 60 ? 'score-mid' : 'score-low';
+  const sorted = [...candidates].sort((a,b) => (b.final_score ?? 0) - (a.final_score ?? 0));
+  tbody.innerHTML = sorted.slice(0, 8).map(c => {
+    const cv  = c.final_score != null ? `<span class="score-badge ${scoreClass(c.final_score)}">${Math.round(c.final_score)}</span>` : '<span style="color:var(--text-muted)">—</span>';
+    const mcq = c.mcq_score   != null ? `<span class="score-badge ${scoreClass(c.mcq_score)}">${Math.round(c.mcq_score)}</span>`     : '<span style="color:var(--text-muted)">—</span>';
+    const st  = statusMap[c.status] ?? `<span class="status-pill status-pending">● ${c.status}</span>`;
+    return `<tr>
+      <td><div class="cand-name">${c.full_name || 'Unknown'}</div><div style="font-size:11px;color:var(--text-muted);margin-top:1px">${c._job_title || ''}</div></td>
+      <td>${cv}</td><td>${mcq}</td><td>${st}</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildFunnel(total, cvSL, mcqP, voiceSL) {
+  const items = [
+    { label: 'Applications Received', count: total,  color: '#2d8cf0' },
+    { label: 'CV Shortlisted',        count: cvSL,   color: '#00d4ff' },
+    { label: 'MCQ Passed',            count: mcqP,   color: '#00b8a9' },
+    { label: 'Voice Shortlisted',     count: voiceSL,color: '#7c5cbf' },
+    { label: 'Final Offers',          count: 6,      color: '#22c55e' },
+  ];
+  const max = items[0].count;
+  const el = document.getElementById('funnel-list');
+  el.innerHTML = items.map(item => {
+    const pct = Math.round((item.count / max) * 100);
+    const stgPct = Math.round((item.count / total) * 100);
+    return `<div class="funnel-item">
+      <div class="funnel-label">${item.label}</div>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${pct}%;background:${item.color}"></div>
+      </div>
+      <div class="funnel-count">${item.count}</div>
+      <div class="funnel-pct">${stgPct}%</div>
+    </div>`;
+  }).join('');
+}
+
+let trendChartInst = null;
+function buildTrendChart() {
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  if (trendChartInst) trendChartInst.destroy();
+  trendChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: MOCK.trend.labels,
+      datasets: [
+        {
+          label: 'CV Score',
+          data: MOCK.trend.cv,
+          borderColor: '#2d8cf0',
+          backgroundColor: 'rgba(45,140,240,0.08)',
+          tension: 0.4,
+          fill: true,
+          pointRadius: 3,
+          pointBackgroundColor: '#2d8cf0',
+          borderWidth: 2
+        },
+        {
+          label: 'MCQ Score',
+          data: MOCK.trend.mcq,
+          borderColor: '#00d4ff',
+          backgroundColor: 'transparent',
+          tension: 0.4,
+          pointRadius: 3,
+          pointBackgroundColor: '#00d4ff',
+          borderWidth: 2,
+          borderDash: [5,3]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#4a6080', font: { size: 11 } },
+          border: { color: 'transparent' }
+        },
+        y: {
+          min: 40, max: 90,
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#4a6080', font: { size: 11 } },
+          border: { color: 'transparent' }
+        }
+      }
+    }
+  });
+}
+
+let donutInst = null;
+function buildDonutChart(total, cv, mcq, voice) {
+  const ctx = document.getElementById('donutChart').getContext('2d');
+  if (donutInst) donutInst.destroy();
+  const declined = total - cv;
+  donutInst = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Applied', 'CV Shortlisted', 'MCQ Passed', 'Voice'],
+      datasets: [{
+        data: [declined, cv - mcq, mcq - voice, voice],
+        backgroundColor: ['#1e3a6e','#2d8cf0','#00b8a9','#7c5cbf'],
+        borderColor: 'transparent',
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: {
+          label: ctx => ' ' + ctx.label + ': ' + ctx.parsed
+        }
+      }}
+    }
+  });
+}
+
+let barInst = null;
+function buildBarChart(scores) {
+  const ctx = document.getElementById('barChart').getContext('2d');
+  if (barInst) barInst.destroy();
+  const bins = [0,0,0,0,0,0,0];
+  (scores || []).forEach(s => {
+    if (s < 40) bins[0]++;
+    else if (s < 50) bins[1]++;
+    else if (s < 60) bins[2]++;
+    else if (s < 70) bins[3]++;
+    else if (s < 80) bins[4]++;
+    else if (s < 90) bins[5]++;
+    else bins[6]++;
+  });
+  barInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['<40','40-50','50-60','60-70','70-80','80-90','90+'],
+      datasets: [{
+        label: 'Candidates',
+        data: bins,
+        backgroundColor: '#2d8cf0',
+        borderRadius: 3,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#4a6080', font: { size: 10 } },
+          border: { color: 'transparent' }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#4a6080', font: { size: 10 }, maxTicksLimit: 4 },
+          border: { color: 'transparent' }
+        }
+      }
+    }
+  });
+}
+
+function buildCandidatesTable() {
+  const tbody = document.getElementById('candidates-body');
+  const statusMap = {
+    shortlisted: '<span class="status-pill status-shortlisted">● Shortlisted</span>',
+    pending:     '<span class="status-pill status-pending">● Pending</span>',
+    declined:    '<span class="status-pill status-declined">● Declined</span>',
+    interview:   '<span class="status-pill status-interview">● Interview</span>',
+  };
+  const scoreClass = s => s >= 75 ? 'score-high' : s >= 60 ? 'score-mid' : 'score-low';
+  tbody.innerHTML = MOCK.candidates.map(c => `
+    <tr>
+      <td>
+        <div class="cand-name">${c.name}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:1px">${c.job}</div>
+      </td>
+      <td><span class="score-badge ${scoreClass(c.cv)}">${c.cv}</span></td>
+      <td>${c.mcq !== null ? `<span class="score-badge ${scoreClass(c.mcq)}">${c.mcq}</span>` : '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td>${statusMap[c.status] || c.status}</td>
+    </tr>
+  `).join('');
+}
+
+loadDashboard();
+
+const PAGE_TITLES = {
+  dashboard:  'Pipeline Analytics',
+  candidates: 'Candidates',
+  positions:  'Positions',
+  pipeline:   'Live Pipeline',
+  interviews: 'Voice Interviews',
+  links:      'Quick Links',
+  settings:   'Settings',
+};
+
+document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+  item.addEventListener('click', function(e) {
+    e.preventDefault();
+    const page = this.dataset.page;
+
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    this.classList.add('active');
+
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    const target = document.getElementById('page-' + page);
+    if (target) target.style.display = 'block';
+
+    document.querySelector('.topbar-title').textContent = PAGE_TITLES[page] || page;
+
+    if (page === 'pipeline') buildPipelineChart();
+  if (page === 'positions') buildPositionsPage();
+  if (page === 'candidates') buildCandidatesFullPage();
+  if (page === 'links') buildLinksPage();
+  if (page === 'interviews') buildInterviewsPage();
+  });
+});
+
+document.querySelectorAll('.chart-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    const stage = this.textContent.trim().toLowerCase();
+    updateTrendChart(stage);
+  });
+});
+
+function updateTrendChart(stage) {
+  if (!trendChartInst) return;
+  const data = { cv: MOCK.trend.cv, mcq: MOCK.trend.mcq, voice: MOCK.trend.voice };
+  const colors = { cv: '#2d8cf0', mcq: '#00d4ff', voice: '#7c5cbf' };
+  trendChartInst.data.datasets[0].data = data[stage] || data.cv;
+  trendChartInst.data.datasets[0].borderColor = colors[stage] || colors.cv;
+  trendChartInst.data.datasets[0].pointBackgroundColor = colors[stage] || colors.cv;
+  trendChartInst.update();
+  const avg = Math.round(data[stage].reduce((a,b) => a+b,0) / data[stage].length);
+  document.getElementById('avg-cv-score').textContent = avg.toFixed(1);
+}
+
+let pipelineBarInst = null;
+async function buildPipelineChart() {
+  const el = document.getElementById('pipelineBarChart');
+  if (!el) return;
+
+  const candidates = _allCandidatesCache.length ? _allCandidatesCache : await fetchCandidates();
+  if (!_allCandidatesCache.length) _allCandidatesCache = candidates;
+
+  const CV_PASSED = ['shortlisted','mcq_passed','interviewing','interview_done','interview_complete'];
+  const total   = candidates.length;
+  const cvSL    = candidates.filter(c => CV_PASSED.includes(c.status)).length;
+  const mcqP    = candidates.filter(c => ['mcq_passed','interviewing','interview_done','interview_complete'].includes(c.status)).length;
+  const voiceSL = candidates.filter(c => ['interviewing','interview_done','interview_complete'].includes(c.status)).length;
+  const final_  = candidates.filter(c => c.status === 'interview_complete').length;
+
+  const items = [
+    { label: 'Applications Received', count: total,   color: '#2d8cf0' },
+    { label: 'CV Shortlisted',        count: cvSL,    color: '#00d4ff' },
+    { label: 'MCQ Passed',            count: mcqP,    color: '#00b8a9' },
+    { label: 'Voice Shortlisted',     count: voiceSL, color: '#7c5cbf' },
+    { label: 'Final Offers',          count: final_,  color: '#22c55e' },
+  ];
+
+  const funnelEl = document.getElementById('funnel-list-full');
+  if (funnelEl) {
+    const max = total || 1;
+    funnelEl.innerHTML = items.map(item => {
+      const pct    = Math.round((item.count / max) * 100);
+      const stgPct = Math.round((item.count / max) * 100);
+      return `<div class="funnel-item">
+        <div class="funnel-label">${item.label}</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${pct}%;background:${item.color}"></div></div>
+        <div class="funnel-count">${item.count}</div>
+        <div class="funnel-pct">${stgPct}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  if (pipelineBarInst) pipelineBarInst.destroy();
+  const ctx = el.getContext('2d');
+  pipelineBarInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Applied','CV Shortlisted','MCQ Passed','Voice Shortlisted','Final Offer'],
+      datasets: [{
+        data: [total, cvSL, mcqP, voiceSL, final_],
+        backgroundColor: ['#2d8cf0','#00d4ff','#00b8a9','#7c5cbf','#22c55e'],
+        borderRadius: 4,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#4a6080', font: { size: 11 } }, border: { color: 'transparent' } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#4a6080', font: { size: 11 }, stepSize: 1 }, border: { color: 'transparent' } }
+      }
+    }
+  });
+}
+
+let _allCandidatesCache = [];
+
+async function buildCandidatesFullPage() {
+  const tbody = document.getElementById('all-candidates-body');
+  const subtitle = document.getElementById('candidates-subtitle');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="6" style="color:var(--text-muted);text-align:center;padding:24px">Loading...</td></tr>';
+
+  const candidates = _allCandidatesCache.length ? _allCandidatesCache : await fetchCandidates();
+  if (!_allCandidatesCache.length) _allCandidatesCache = candidates;
+
+  if (subtitle) subtitle.textContent = candidates.length + ' candidate' + (candidates.length !== 1 ? 's' : '') + ' total';
+
+  const statusMap = {
+    mcq_passed:     '<span class="status-pill status-shortlisted">● MCQ Passed</span>',
+    shortlisted:    '<span class="status-pill status-shortlisted">● Shortlisted</span>',
+    not_selected:   '<span class="status-pill status-declined">● Declined</span>',
+    interviewing:   '<span class="status-pill status-interview">● Interviewing</span>',
+    interview_done: '<span class="status-pill status-interview">● Interview Done</span>',
+    received:       '<span class="status-pill status-pending">● Received</span>',
+    processing:     '<span class="status-pill status-pending">● Processing</span>',
+    scored:         '<span class="status-pill status-pending">● Scored</span>',
+    error:          '<span class="status-pill status-declined">● Error</span>',
+  };
+  const scoreClass = s => s >= 75 ? 'score-high' : s >= 60 ? 'score-mid' : 'score-low';
+  const scoreCell = s => s != null ? `<span class="score-badge ${scoreClass(s)}">${Math.round(s)}</span>` : '<span style="color:var(--text-muted)">—</span>';
+
+  function renderTable(list) {
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--text-muted);text-align:center;padding:24px">No candidates found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(c => `<tr>
+      <td>
+        <div class="cand-name">${c.full_name || 'Unknown'}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:1px">${c.email || ''}</div>
+      </td>
+      <td style="color:var(--text-muted)">${c._job_title || '—'}</td>
+      <td>${scoreCell(c.final_score)}</td>
+      <td>${scoreCell(c.mcq_score)}</td>
+      <td>${scoreCell(c.voice_score ?? null)}</td>
+      <td>${statusMap[c.status] ?? '<span class="status-pill status-pending">● ' + c.status + '</span>'}</td>
+    </tr>`).join('');
+  }
+
+  renderTable(candidates);
+
+  const searchEl  = document.getElementById('candidates-search');
+  const filterEl  = document.getElementById('candidates-filter');
+
+  function applyFilters() {
+    const q      = (searchEl?.value || '').toLowerCase();
+    const status = filterEl?.value || 'all';
+    const filtered = candidates.filter(c => {
+      const matchQ = !q || (c.full_name || '').toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q);
+      const matchS = status === 'all' || c.status === status;
+      return matchQ && matchS;
+    });
+    if (subtitle) subtitle.textContent = filtered.length + ' of ' + candidates.length + ' candidates';
+    renderTable(filtered);
+  }
+
+  // Remove old listeners before adding new ones to prevent duplicates
+  const newSearch = searchEl.cloneNode(true);
+  const newFilter = filterEl.cloneNode(true);
+  searchEl.parentNode.replaceChild(newSearch, searchEl);
+  filterEl.parentNode.replaceChild(newFilter, filterEl);
+  newSearch.addEventListener('input', applyFilters);
+  newFilter.addEventListener('change', applyFilters);
+}
+
+async function buildPositionsPage() {
+  const grid = document.getElementById('positions-grid');
+  const linksGrid = document.getElementById('quick-links-grid');
+  if (!grid) return;
+  try {
+    const jobsRes = await fetch(`${API}/api/v1/jobs`);
+    const jobsData = await jobsRes.json();
+    const jobs = jobsData.jobs ?? jobsData;
+    if (!jobs.length) { grid.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:20px">No active positions found.</div>'; return; }
+
+    // ── Build Quick Links from real job data ──
+    if (linksGrid) {
+      const linkDefs = [
+        // Static fixed links
+        { label: 'Candidate Sheet', sub: 'Master Google Sheet', icon: 'M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z', color: '#00b8a9', url: 'https://docs.google.com/spreadsheets' },
+        { label: 'CV Drive Folder', sub: 'Submitted CVs', icon: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z', color: '#2d8cf0', url: 'https://drive.google.com' },
+      ];
+      // Add MCQ form links and response sheet links per job
+      jobs.forEach(job => {
+        if (job.mcq_form_url) {
+          linkDefs.push({
+            label: job.title + ' — MCQ Form',
+            sub: 'Candidate test form',
+            icon: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2m-6 9l2 2 4-4',
+            color: '#7c5cbf',
+            url: job.mcq_form_url
+          });
+        }
+        if (job.mcq_sheets_id) {
+          linkDefs.push({
+            label: job.title + ' — MCQ Responses',
+            sub: 'Test response sheet',
+            icon: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+            color: '#00d4ff',
+            url: 'https://docs.google.com/spreadsheets/d/' + job.mcq_sheets_id
+          });
+        }
+        if (job.google_form_url) {
+          linkDefs.push({
+            label: job.title + ' — Apply Form',
+            sub: 'CV submission form',
+            icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8',
+            color: '#22c55e',
+            url: job.google_form_url
+          });
+        }
+      });
+
+      linksGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(220px, 1fr))';
+      linksGrid.innerHTML = linkDefs.map(l => `
+        <a href="${l.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:10px;padding:14px 16px;text-decoration:none;transition:background 0.15s,border-color 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='rgba(255,255,255,0.16)'" onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.borderColor='var(--card-border)'">
+          <div style="width:36px;height:36px;border-radius:8px;background:${l.color}22;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="2"><path d="${l.icon}"/></svg>
+          </div>
+          <div style="min-width:0">
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.label}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${l.sub}</div>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;opacity:0.4" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+      `).join('');
+    }
+
+    // Build applicant count map from fetched candidates
+    let allCands = [];
+    try {
+      for (const job of jobs) {
+        const r = await fetch(`${API}/api/v1/jobs/${job._id}/candidates`);
+        if (r.ok) {
+          const d = await r.json();
+          const cc = Array.isArray(d) ? d : (d.candidates ?? []);
+          cc.forEach(c => c._job_id = job._id);
+          allCands.push(...cc);
+        }
+      }
+    } catch(e) {}
+    const countByJob = {};
+    const shortlistByJob = {};
+    const CV_PASSED = ['shortlisted','mcq_passed','interviewing','interview_done','interview_complete'];
+    allCands.forEach(c => {
+      countByJob[c.job_id || c._job_id] = (countByJob[c.job_id || c._job_id] || 0) + 1;
+      if (CV_PASSED.includes(c.status)) shortlistByJob[c.job_id || c._job_id] = (shortlistByJob[c.job_id || c._job_id] || 0) + 1;
+    });
+
+    grid.innerHTML = jobs.map(job => {
+      const realApps = countByJob[job._id] ?? job.total_applications ?? 0;
+      const realSL   = shortlistByJob[job._id] ?? job.shortlisted_count ?? 0;
+      const statusClass = job.status === 'active' ? 'status-shortlisted' : 'status-pending';
+      const statusLabel = job.status === 'active' ? '● Active' : '● ' + job.status;
+      const skills = (job.required_skills || []).slice(0, 3).join(', ');
+      const mcqBtn = job.mcq_form_url
+        ? `<a href="${job.mcq_form_url}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:7px;margin-top:12px;background:rgba(124,92,191,0.15);border:1px solid rgba(124,92,191,0.3);border-radius:8px;padding:9px 14px;color:#a78bfa;font-size:12.5px;font-weight:500;text-decoration:none" onmouseover="this.style.background='rgba(124,92,191,0.28)'" onmouseout="this.style.background='rgba(124,92,191,0.15)'"><svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg>Open MCQ Test Form</a>`
+        : '<div style="margin-top:12px;font-size:12px;color:var(--text-muted)">No MCQ form linked</div>';
+      return `<div class="chart-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div class="chart-card-title">${job.title}</div>
+          <span class="status-pill ${statusClass}" style="font-size:11px">${statusLabel}</span>
+        </div>
+        <div style="color:var(--text-muted);font-size:12px;margin-bottom:12px">${skills || 'No skills listed'}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Total Apps</div>
+            <div style="font-size:20px;font-weight:600;font-family:var(--mono);color:var(--text-primary)">${realApps}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Shortlisted</div>
+            <div style="font-size:20px;font-weight:600;font-family:var(--mono);color:#2d8cf0">${realSL}</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:11.5px;color:var(--text-muted)">
+          Threshold: <span style="color:var(--text-primary);font-family:var(--mono)">${job.shortlist_threshold ?? 65}</span> &nbsp;·&nbsp;
+          MCQ deadline: <span style="color:var(--text-primary);font-family:var(--mono)">${job.mcq_deadline_days ?? 3} days</span>
+        </div>
+        ${mcqBtn}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:20px">Could not load positions.</div>';
+  }
+}
+
+// ── Pipeline runner ──
+async function runStage(stage, label) {
+  const log = document.getElementById('pipeline-log');
+  const btns = document.querySelectorAll('.pipeline-btn');
+  btns.forEach(b => b.disabled = true);
+  const ts = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  log.textContent = '[' + ts + '] Running: ' + label + '...';
+  try {
+    const res = await fetch(`${API}/api/v1/pipeline/${stage}`, { method: 'POST' });
+    const data = await res.json();
+    const ts2 = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const msg = data.message || data.status || JSON.stringify(data);
+    log.textContent = '[' + ts2 + '] Done: ' + msg;
+    log.style.color = '#22c55e';
+    _allCandidatesCache = [];
+    setTimeout(() => { log.style.color = 'var(--text-muted)'; }, 4000);
+  } catch(e) {
+    log.textContent = 'Error: ' + e.message;
+    log.style.color = '#ef4444';
+  }
+  btns.forEach(b => b.disabled = false);
+}
+
+// ── Create new job ──
+async function submitNewJob() {
+  const status = document.getElementById('nj-status');
+  const title  = document.getElementById('nj-title').value.trim();
+  if (!title) { status.textContent = 'Job title is required.'; status.style.color = '#ef4444'; return; }
+  status.textContent = 'Creating...'; status.style.color = 'var(--text-muted)';
+  const skills = document.getElementById('nj-skills').value.split(',').map(s => s.trim()).filter(Boolean);
+  const payload = {
+    title,
+    description:               document.getElementById('nj-desc').value.trim(),
+    required_skills:           skills,
+    required_education:        document.getElementById('nj-education').value.trim(),
+    required_experience_years: parseInt(document.getElementById('nj-exp').value) || 1,
+    shortlist_threshold:       parseInt(document.getElementById('nj-threshold').value) || 65,
+    mcq_form_url:              document.getElementById('nj-mcq-url').value.trim(),
+    mcq_sheets_id:             document.getElementById('nj-mcq-sheet').value.trim(),
+    mcq_deadline_days:         parseInt(document.getElementById('nj-mcq-days').value) || 3,
+    values_prompt:             document.getElementById('nj-values').value.trim(),
+    status: 'active',
+  };
+  try {
+    const res = await fetch(`${API}/api/v1/jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Server error'); }
+    status.textContent = '✓ Position created successfully!'; status.style.color = '#22c55e';
+    document.getElementById('create-job-form').style.display = 'none';
+    buildPositionsPage();
+  } catch(e) {
+    status.textContent = 'Error: ' + e.message; status.style.color = '#ef4444';
+  }
+}
+
+// ── Links page ──
+async function runStage(stage, label) {
+  const log = document.getElementById('pipeline-log');
+  const btns = document.querySelectorAll('.pipeline-btn');
+  btns.forEach(b => b.disabled = true);
+  const ts = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  log.textContent = '[' + ts + '] Running: ' + label + '...';
+  log.style.color = 'var(--accent-cyan)';
+  try {
+    const res = await fetch(`${API}/api/v1/pipeline/${stage}`, { method: 'POST' });
+    const data = await res.json();
+    const ts2 = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const msg = data.message || data.status || JSON.stringify(data);
+    log.textContent = '[' + ts2 + '] Done: ' + msg;
+    log.style.color = '#22c55e';
+    _allCandidatesCache = [];
+  } catch(e) {
+    log.textContent = 'Error: ' + e.message;
+    log.style.color = '#ef4444';
+  }
+  btns.forEach(b => b.disabled = false);
+}
+
+// ── Create new job ──
+async function submitNewJob() {
+  const status = document.getElementById('nj-status');
+  const title  = document.getElementById('nj-title').value.trim();
+  if (!title) { status.textContent = 'Job title is required.'; status.style.color = '#ef4444'; return; }
+  status.textContent = 'Creating...'; status.style.color = 'var(--text-muted)';
+  const skills = document.getElementById('nj-skills').value.split(',').map(s => s.trim()).filter(Boolean);
+  const payload = {
+    title,
+    description:               document.getElementById('nj-desc').value.trim(),
+    required_skills:           skills,
+    required_education:        document.getElementById('nj-education').value.trim(),
+    required_experience_years: parseInt(document.getElementById('nj-exp').value) || 1,
+    shortlist_threshold:       parseInt(document.getElementById('nj-threshold').value) || 65,
+    mcq_form_url:              document.getElementById('nj-mcq-url').value.trim(),
+    mcq_sheets_id:             document.getElementById('nj-mcq-sheet').value.trim(),
+    mcq_deadline_days:         parseInt(document.getElementById('nj-mcq-days').value) || 3,
+    values_prompt:             document.getElementById('nj-values').value.trim(),
+    status: 'active',
+  };
+  try {
+    const res = await fetch(`${API}/api/v1/jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Server error'); }
+    status.textContent = '✓ Position created!'; status.style.color = '#22c55e';
+    document.getElementById('create-job-form').style.display = 'none';
+    buildPositionsPage();
+  } catch(e) {
+    status.textContent = 'Error: ' + e.message; status.style.color = '#ef4444';
+  }
+}
+
+// ── Links page ──
+async function buildInterviewsPage() {
+  const tbody   = document.getElementById('interviews-body');
+  const subtitle = document.getElementById('interviews-subtitle');
+  if (!tbody) return;
+  const candidates = _allCandidatesCache.length ? _allCandidatesCache : await fetchCandidates();
+  if (!_allCandidatesCache.length) _allCandidatesCache = candidates;
+
+  const INTERVIEW_STATUSES = ['interviewing','interview_done','interview_complete','mcq_passed','shortlisted'];
+  const all = candidates;
+  if (subtitle) subtitle.textContent = all.length + ' candidate' + (all.length !== 1 ? 's' : '') + ' in pipeline';
+
+  const statusMap = {
+    mcq_passed:       '<span class="status-pill status-shortlisted">● MCQ Passed</span>',
+    shortlisted:      '<span class="status-pill status-shortlisted">● CV Shortlisted</span>',
+    interviewing:     '<span class="status-pill status-interview">● Interviewing</span>',
+    interview_done:   '<span class="status-pill status-interview">● Interview Done</span>',
+    not_selected:     '<span class="status-pill status-declined">● Declined</span>',
+    received:         '<span class="status-pill status-pending">● Received</span>',
+    processing:       '<span class="status-pill status-pending">● Processing</span>',
+    scored:           '<span class="status-pill status-pending">● Scored</span>',
+  };
+  const scoreClass = s => s >= 75 ? 'score-high' : s >= 60 ? 'score-mid' : 'score-low';
+  const scoreCell  = s => s != null ? `<span class="score-badge ${scoreClass(s)}">${Math.round(s)}</span>` : '<span style="color:var(--text-muted)">—</span>';
+
+  if (!all.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--text-muted);text-align:center;padding:24px">No candidates found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = all.map(c => {
+    const date = c.created_at ? c.created_at.split('T')[0] : '—';
+    const st   = statusMap[c.status] ?? `<span class="status-pill status-pending">● ${c.status}</span>`;
+    return `<tr>
+      <td><div class="cand-name">${c.full_name || 'Unknown'}</div></td>
+      <td style="color:var(--text-muted);font-size:12px">${c.email || '—'}</td>
+      <td style="color:var(--text-muted)">${c._job_title || '—'}</td>
+      <td style="color:var(--text-muted);font-family:var(--mono);font-size:12px">${date}</td>
+      <td>${scoreCell(c.final_score)}</td>
+      <td>${scoreCell(c.mcq_score)}</td>
+      <td>${scoreCell(c.voice_score ?? null)}</td>
+      <td>${st}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function buildInterviewsPage() {
+  const tbody    = document.getElementById('interviews-body');
+  const subtitle = document.getElementById('interviews-subtitle');
+  if (!tbody) return;
+  const candidates = _allCandidatesCache.length ? _allCandidatesCache : await fetchCandidates();
+  if (!_allCandidatesCache.length) _allCandidatesCache = candidates;
+  if (subtitle) subtitle.textContent = candidates.length + ' candidate' + (candidates.length !== 1 ? 's' : '') + ' in pipeline';
+  const statusMap = {
+    mcq_passed:     '<span class="status-pill status-shortlisted">● MCQ Passed</span>',
+    shortlisted:    '<span class="status-pill status-shortlisted">● CV Shortlisted</span>',
+    interviewing:   '<span class="status-pill status-interview">● Interviewing</span>',
+    interview_done: '<span class="status-pill status-interview">● Interview Done</span>',
+    not_selected:   '<span class="status-pill status-declined">● Declined</span>',
+    received:       '<span class="status-pill status-pending">● Received</span>',
+    processing:     '<span class="status-pill status-pending">● Processing</span>',
+    scored:         '<span class="status-pill status-pending">● Scored</span>',
+  };
+  const scoreClass = s => s >= 75 ? 'score-high' : s >= 60 ? 'score-mid' : 'score-low';
+  const scoreCell  = s => s != null ? `<span class="score-badge ${scoreClass(s)}">${Math.round(s)}</span>` : '<span style="color:var(--text-muted)">—</span>';
+  if (!candidates.length) { tbody.innerHTML = '<tr><td colspan="8" style="color:var(--text-muted);text-align:center;padding:24px">No candidates found.</td></tr>'; return; }
+  tbody.innerHTML = candidates.map(c => {
+    const date = c.created_at ? c.created_at.split('T')[0] : '—';
+    const st   = statusMap[c.status] ?? `<span class="status-pill status-pending">● ${c.status}</span>`;
+    return `<tr>
+      <td><div class="cand-name">${c.full_name || 'Unknown'}</div></td>
+      <td style="color:var(--text-muted);font-size:12px">${c.email || '—'}</td>
+      <td style="color:var(--text-muted)">${c._job_title || '—'}</td>
+      <td style="color:var(--text-muted);font-family:var(--mono);font-size:12px">${date}</td>
+      <td>${scoreCell(c.final_score)}</td>
+      <td>${scoreCell(c.mcq_score)}</td>
+      <td>${scoreCell(c.voice_score ?? null)}</td>
+      <td>${st}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function buildLinksPage() {
+  const grid = document.getElementById('links-page-grid');
+  if (!grid) return;
+  try {
+    const jobsRes  = await fetch(`${API}/api/v1/jobs`);
+    const jobsData = await jobsRes.json();
+    const jobs     = jobsData.jobs ?? jobsData;
+    const linkDefs = [
+      {
+        label: 'Candidate Master Sheet',
+        sub:   'All candidates, scores & decisions',
+        icon:  'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+        color: '#00b8a9',
+        url:   'https://docs.google.com/spreadsheets/d/1ZmGylr3C2wDX2iMWQsi1YAW22s7XvOe842N3h0nR3Cs/edit?gid=0#gid=0'
+      },
+      {
+        label: 'CV Application Form',
+        sub:   'Candidates submit CVs here',
+        icon:  'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z',
+        color: '#22c55e',
+        url:   'https://docs.google.com/forms/d/e/1FAIpQLSddbgtmf53ERLZWbN1PXxxudNJk6CjlYYORQdZUB4p39Ng6eA/viewform'
+      },
+    ];
+    jobs.forEach(job => {
+      if (job.google_drive_folder_id) {
+        linkDefs.push({ label: job.title + ' — CV Drive Folder', sub: 'Submitted CVs for this role', icon: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z', color: '#2d8cf0', url: 'https://drive.google.com/drive/folders/' + job.google_drive_folder_id });
+      }
+      if (job.google_form_url) {
+        linkDefs.push({ label: job.title + ' — Apply Form', sub: 'CV submission Google Form', icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', color: '#22c55e', url: job.google_form_url });
+      }
+      if (job.mcq_form_url) {
+        linkDefs.push({ label: job.title + ' — MCQ Test Form', sub: 'Candidate test Google Form', icon: 'M9 11l3 3L22 4', color: '#7c5cbf', url: job.mcq_form_url });
+      }
+      if (job.mcq_sheets_id) {
+        linkDefs.push({ label: job.title + ' — MCQ Responses', sub: 'Test response Google Sheet', icon: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z', color: '#00d4ff', url: 'https://docs.google.com/spreadsheets/d/' + job.mcq_sheets_id });
+      }
+    });
+    if (!linkDefs.length) { grid.innerHTML = '<div style="color:var(--text-muted);padding:12px">No links found. Add Google Form and Sheet IDs to your jobs.</div>'; return; }
+    grid.innerHTML = linkDefs.map(l => `
+      <a href="${l.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:10px;padding:14px 16px;text-decoration:none;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.09)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+        <div style="width:38px;height:38px;border-radius:9px;background:${l.color}22;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="2"><path d="${l.icon}"/></svg>
+        </div>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.label}</div>
+          <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px">${l.sub}</div>
+        </div>
+        <svg style="flex-shrink:0;opacity:0.35" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+    `).join('');
+  } catch(e) {
+    if(grid) grid.innerHTML = '<div style="color:var(--text-muted)">Could not load links.</div>';
+  }
+}
+
+document.querySelectorAll('input[type=range]').forEach(slider => {
+  slider.addEventListener('input', function() {
+    this.nextElementSibling.textContent = this.value;
+  });
+});
+</script>
+</body>
+</html>

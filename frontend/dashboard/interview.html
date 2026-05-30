@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Voice Interview — Recruitment AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #050b1a;
+    --surface:   #0a1628;
+    --card:      #0f2040;
+    --border:    rgba(255,255,255,0.08);
+    --blue:      #2d8cf0;
+    --cyan:      #00d4ff;
+    --teal:      #00b8a9;
+    --purple:    #7c5cbf;
+    --green:     #22c55e;
+    --red:       #ef4444;
+    --amber:     #f59e0b;
+    --text:      #e8edf5;
+    --muted:     #8fa3bf;
+    --dimmed:    #4a6080;
+    --font:      'DM Sans', sans-serif;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 680px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--blue); }
+  .logo-text { font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; }
+
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 8px; }
+  h2 { font-size: 19px; font-weight: 600; margin-bottom: 8px; }
+  p  { color: var(--muted); line-height: 1.6; font-size: 14.5px; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 500;
+    margin-bottom: 24px;
+  }
+  .badge-blue   { background: rgba(45,140,240,0.15); color: var(--blue); }
+  .badge-green  { background: rgba(34,197,94,0.12);  color: var(--green); }
+  .badge-amber  { background: rgba(245,158,11,0.12); color: var(--amber); }
+  .badge-red    { background: rgba(239,68,68,0.12);  color: var(--red); }
+  .badge-purple { background: rgba(124,92,191,0.15); color: #a78bfa; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 28px;
+    border-radius: 10px;
+    font-size: 14.5px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { background: #2176cc; }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-outline:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  .btn-green  { background: var(--green); color: #fff; }
+  .btn-green:hover { background: #16a34a; }
+
+  .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+  /* ── Progress bar ── */
+  .progress-wrap {
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    height: 4px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  /* ── Question card ── */
+  .question-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .q-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--dimmed);
+    margin-bottom: 10px;
+  }
+  .q-text {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  /* ── Mic button ── */
+  .mic-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 28px 0 8px;
+  }
+  .mic-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .mic-btn.idle    { background: rgba(45,140,240,0.15); }
+  .mic-btn.idle:hover { background: rgba(45,140,240,0.25); }
+  .mic-btn.listening { background: rgba(239,68,68,0.2); animation: pulse-ring 1.5s infinite; }
+  .mic-btn.done    { background: rgba(34,197,94,0.15); }
+
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+    70%  { box-shadow: 0 0 0 16px rgba(239,68,68,0); }
+    100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+  }
+
+  .mic-btn svg { width: 30px; height: 30px; }
+  .mic-status { font-size: 13px; color: var(--muted); font-weight: 500; min-height: 20px; }
+  .mic-status.active { color: var(--red); }
+  .mic-status.done   { color: var(--green); }
+
+  /* ── Transcript box ── */
+  .transcript-box {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    min-height: 70px;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .transcript-placeholder { color: var(--dimmed); font-style: italic; }
+
+  /* ── Answer list (review screen) ── */
+  .answer-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .answer-q { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+  .answer-a { font-size: 14px; color: var(--text); line-height: 1.5; }
+
+  /* ── Result screen ── */
+  .score-circle {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 3px solid var(--blue);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    background: rgba(45,140,240,0.08);
+  }
+  .score-num { font-size: 32px; font-weight: 700; color: var(--text); line-height: 1; }
+  .score-unit { font-size: 12px; color: var(--muted); }
+
+  /* ── Error screen ── */
+  .error-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* ── Screens ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── Steps indicator ── */
+  .steps {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 28px;
+  }
+  .step-dot {
+    height: 4px;
+    flex: 1;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.1);
+    transition: background 0.3s;
+  }
+  .step-dot.done    { background: var(--blue); }
+  .step-dot.current { background: var(--cyan); }
+
+  .info-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .info-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .info-chip strong { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <div class="logo-text">RECRUITMENT AI · BNU</div>
+  </div>
+
+  <!-- ══ SCREEN: Loading ══ -->
+  <div class="screen active" id="screen-loading">
+    <div class="badge badge-blue">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Verifying your link...
+    </div>
+    <h1>Please wait</h1>
+    <p>We are verifying your interview link and preparing your questions.</p>
+  </div>
+
+  <!-- ══ SCREEN: Error ══ -->
+  <div class="screen" id="screen-error">
+    <div class="error-icon">⚠️</div>
+    <h1 style="color:var(--red);margin-bottom:8px">Link Invalid</h1>
+    <p id="error-msg">This interview link is invalid or has already been used. Please contact HR.</p>
+  </div>
+
+  <!-- ══ SCREEN: Welcome ══ -->
+  <div class="screen" id="screen-welcome">
+    <div class="badge badge-blue">AI Voice Interview</div>
+    <h1 id="welcome-name">Hello, Candidate</h1>
+    <p style="margin-bottom:20px">You have been invited to complete a voice interview for the following position.</p>
+    <div class="info-row">
+      <div class="info-chip">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Position: <strong id="welcome-job">—</strong>
+      </div>
+      <div class="info-chip">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Questions: <strong id="welcome-qcount">—</strong>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <h2 style="margin-bottom:12px">Before you begin</h2>
+    <p style="margin-bottom:8px">• Find a quiet place with no background noise.</p>
+    <p style="margin-bottom:8px">• Allow microphone access when your browser asks.</p>
+    <p style="margin-bottom:8px">• Speak clearly and at a normal pace.</p>
+    <p style="margin-bottom:20px">• Each question will be read aloud to you. Press the microphone button to start recording your answer.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="checkMicAndStart()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        Start Interview
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: Interview ══ -->
+  <div class="screen" id="screen-interview">
+    <div class="steps" id="steps-indicator"></div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+
+    <div class="question-box">
+      <div class="q-label" id="q-label">Question 1 of 5</div>
+      <div class="q-text"  id="q-text">Loading...</div>
+    </div>
+
+    <div class="mic-wrap">
+      <button class="mic-btn idle" id="mic-btn" onclick="toggleRecording()">
+        <svg id="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--blue)">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </button>
+      <div class="mic-status" id="mic-status">Tap the microphone to start recording</div>
+    </div>
+
+    <div class="transcript-box" id="transcript-box">
+      <span class="transcript-placeholder" id="transcript-placeholder">Your answer will appear here as you speak...</span>
+      <span id="transcript-text" style="display:none"></span>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div style="font-size:13px;color:var(--dimmed)">
+        <span id="q-counter">0 / 0 answered</span>
+      </div>
+      <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" disabled>
+        Next Question
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: Review ══ -->
+  <div class="screen" id="screen-review">
+    <div class="badge badge-amber">Review Your Answers</div>
+    <h1 style="margin-bottom:8px">Almost done</h1>
+    <p style="margin-bottom:24px">Please review your answers below. Once you submit, your interview will be evaluated.</p>
+    <div id="review-list"></div>
+    <div class="divider"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-green" id="submit-btn" onclick="submitInterview()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Submit Interview
+      </button>
+      <button class="btn btn-outline" onclick="goBack()">← Go Back</button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: Submitting ══ -->
+  <div class="screen" id="screen-submitting">
+    <div class="badge badge-blue">Processing...</div>
+    <h1 style="margin-bottom:8px">Submitting your interview</h1>
+    <p>Please wait while we evaluate your answers. This may take up to 30 seconds.</p>
+    <div class="progress-wrap" style="margin-top:28px">
+      <div class="progress-bar" id="submit-progress" style="width:0%;animation:submit-anim 20s linear forwards"></div>
+    </div>
+    <style>@keyframes submit-anim { to { width: 90%; } }</style>
+  </div>
+
+  <!-- ══ SCREEN: Complete ══ -->
+  <div class="screen" id="screen-complete">
+    <div class="badge badge-green">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Interview Complete
+    </div>
+    <div class="score-circle">
+      <div class="score-num" id="final-score">—</div>
+      <div class="score-unit">out of 100</div>
+    </div>
+    <h1 style="text-align:center;margin-bottom:8px">Thank you, <span id="complete-name">Candidate</span></h1>
+    <p style="text-align:center;margin-bottom:20px">Your interview has been submitted successfully. Our HR team will review your results and be in touch shortly.</p>
+    <div class="divider"></div>
+    <p style="text-align:center;font-size:13px;color:var(--dimmed)">You may close this window.</p>
+  </div>
+</div>
+
+<script>
+// ── Configuration ──────────────────────────────────────────────────────────────
+// Auto-detect whether we're on the Mac or another device (same as dashboard)
+const LOCAL_IP = '192.168.18.14';
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://127.0.0.1:8000'
+  : `http://${LOCAL_IP}:8000`;
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let candidateName = '';
+let jobTitle      = '';
+let questions     = [];       // [{question, ideal_answer}]
+let answers       = [];       // strings, one per question
+let currentQ      = 0;
+let isRecording   = false;
+let recognition   = null;
+let interimText   = '';
+let token         = '';
+
+// ── Screen management ─────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function showError(msg) {
+  document.getElementById('error-msg').textContent = msg;
+  showScreen('error');
+}
+
+// ── On page load: extract token and verify ────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(window.location.search);
+  token = params.get('token') || '';
+  if (!token) { showError('No interview token found in the URL. Please use the link from your email.'); return; }
+
+  try {
+    const res  = await fetch(`${API}/api/v1/interview/verify/${token}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      showError(err.detail || 'This link is invalid or has already been used.');
+      return;
+    }
+    const data = await res.json();
+    candidateName = data.candidate_name;
+    jobTitle      = data.job_title;
+    questions     = data.questions;
+    answers       = new Array(questions.length).fill('');
+
+    document.getElementById('welcome-name').textContent  = `Hello, ${candidateName}`;
+    document.getElementById('welcome-job').textContent   = jobTitle;
+    document.getElementById('welcome-qcount').textContent = `${questions.length} questions`;
+    showScreen('welcome');
+  } catch(e) {
+    showError('Could not connect to the server. Please make sure you are on the correct network.');
+  }
+});
+
+// ── Check mic permission then start ──────────────────────────────────────────
+async function checkMicAndStart() {
+  try {
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+    startInterview();
+  } catch(e) {
+    alert('Microphone access is required for this interview. Please allow microphone access and try again.');
+  }
+}
+
+// ── Set up speech recognition ─────────────────────────────────────────────────
+function setupRecognition() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    alert('Your browser does not support speech recognition. Please use Chrome or Edge.');
+    return false;
+  }
+  recognition = new SpeechRec();
+  recognition.continuous     = true;   // keep listening until stopped
+  recognition.interimResults = true;   // show words as they are spoken
+  recognition.lang           = 'en-US';
+
+  recognition.onresult = (event) => {
+    let interim = '';
+    let final   = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) final += transcript + ' ';
+      else interim += transcript;
+    }
+    // Update display: show confirmed text + grey interim text
+    const confirmed = answers[currentQ] + final;
+    answers[currentQ] = confirmed;
+    showTranscript(confirmed + (interim ? `<span style="color:var(--dimmed)">${interim}</span>` : ''));
+    if (confirmed.trim().length > 3) enableNext();
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error === 'no-speech') return;  // silence is ok
+    stopRecording();
+    setMicStatus('Error: ' + e.error + '. Please try again.', 'idle');
+  };
+
+  recognition.onend = () => {
+    if (isRecording) recognition.start();  // restart if still supposed to be recording
+  };
+
+  return true;
+}
+
+// ── Start interview ────────────────────────────────────────────────────────────
+function startInterview() {
+  if (!setupRecognition()) return;
+  buildSteps();
+  showScreen('interview');
+  loadQuestion(0);
+}
+
+function buildSteps() {
+  const wrap = document.getElementById('steps-indicator');
+  wrap.innerHTML = questions.map((_, i) =>
+    `<div class="step-dot" id="step-${i}"></div>`
+  ).join('');
+}
+
+// ── Load a question ────────────────────────────────────────────────────────────
+function loadQuestion(idx) {
+  currentQ = idx;
+  const q = questions[idx];
+  const total = questions.length;
+
+  document.getElementById('q-label').textContent = `Question ${idx+1} of ${total}`;
+  document.getElementById('q-text').textContent  = q.question;
+  document.getElementById('progress-bar').style.width = `${((idx) / total) * 100}%`;
+  document.getElementById('q-counter').textContent = `${idx} / ${total} answered`;
+
+  // Update step dots
+  questions.forEach((_, i) => {
+    const dot = document.getElementById('step-' + i);
+    dot.className = 'step-dot' + (i < idx ? ' done' : i === idx ? ' current' : '');
+  });
+
+  // Reset transcript display
+  answers[idx] = answers[idx] || '';
+  if (answers[idx]) {
+    showTranscript(answers[idx]);
+    enableNext();
+  } else {
+    clearTranscript();
+    disableNext();
+  }
+
+  // Reset mic
+  if (isRecording) stopRecording();
+  setMicState('idle');
+
+  // Change "Next" to "Finish" on last question
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.innerHTML = idx === total - 1
+    ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Review Answers`
+    : `Next Question <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
+
+  // Read question aloud after short delay
+  setTimeout(() => speakText(q.question), 500);
+}
+
+// ── TTS: speak text using browser speech synthesis ────────────────────────────
+function speakText(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();  // stop any ongoing speech
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate   = 0.9;    // slightly slower than default
+  utterance.pitch  = 1.0;
+  utterance.volume = 1.0;
+  // Pick a natural English voice if available
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.lang === 'en-US' && v.name.includes('Google'))
+                 || voices.find(v => v.lang === 'en-US')
+                 || voices[0];
+  if (preferred) utterance.voice = preferred;
+  window.speechSynthesis.speak(utterance);
+}
+
+// ── Microphone toggle ─────────────────────────────────────────────────────────
+function toggleRecording() {
+  if (isRecording) stopRecording();
+  else startRecording();
+}
+
+function startRecording() {
+  if (!recognition) return;
+  isRecording = true;
+  window.speechSynthesis.cancel();  // stop TTS before listening
+  recognition.start();
+  setMicState('listening');
+  setMicStatus('Recording... Speak your answer', 'active');
+}
+
+function stopRecording() {
+  isRecording = false;
+  if (recognition) { try { recognition.stop(); } catch(e) {} }
+  setMicState('done');
+  setMicStatus('Recording stopped. You can re-record or continue.', 'done');
+}
+
+function setMicState(state) {
+  const btn = document.getElementById('mic-btn');
+  const icon = document.getElementById('mic-icon');
+  btn.className = 'mic-btn ' + state;
+  const colors = { idle: 'var(--blue)', listening: 'var(--red)', done: 'var(--green)' };
+  icon.setAttribute('color', colors[state] || 'var(--blue)');
+  icon.querySelectorAll('path, line').forEach(el => el.setAttribute('stroke', colors[state] || 'var(--blue)'));
+}
+
+function setMicStatus(text, cls) {
+  const el = document.getElementById('mic-status');
+  el.textContent  = text;
+  el.className    = 'mic-status' + (cls ? ' ' + cls : '');
+}
+
+// ── Transcript helpers ─────────────────────────────────────────────────────────
+function showTranscript(html) {
+  document.getElementById('transcript-placeholder').style.display = 'none';
+  const t = document.getElementById('transcript-text');
+  t.style.display = 'inline';
+  t.innerHTML = html;
+}
+
+function clearTranscript() {
+  document.getElementById('transcript-placeholder').style.display = 'inline';
+  const t = document.getElementById('transcript-text');
+  t.style.display = 'none';
+  t.innerHTML = '';
+}
+
+function enableNext()  { document.getElementById('next-btn').disabled = false; }
+function disableNext() { document.getElementById('next-btn').disabled = true; }
+
+// ── Move to next question or review ──────────────────────────────────────────
+function nextQuestion() {
+  if (isRecording) stopRecording();
+  if (currentQ < questions.length - 1) {
+    loadQuestion(currentQ + 1);
+  } else {
+    showReview();
+  }
+}
+
+// ── Review screen ─────────────────────────────────────────────────────────────
+function showReview() {
+  const list = document.getElementById('review-list');
+  list.innerHTML = questions.map((q, i) => `
+    <div class="answer-item">
+      <div class="answer-q">Q${i+1}: ${q.question}</div>
+      <div class="answer-a">${answers[i] || '<em style="color:var(--dimmed)">No answer recorded</em>'}</div>
+    </div>
+  `).join('');
+  showScreen('review');
+}
+
+function goBack() {
+  showScreen('interview');
+  loadQuestion(currentQ);
+}
+
+// ── Submit interview ──────────────────────────────────────────────────────────
+async function submitInterview() {
+  document.getElementById('submit-btn').disabled = true;
+  showScreen('submitting');
+
+  const payload = {
+    token,
+    answers: questions.map((q, i) => ({
+      question: q.question,
+      answer:   answers[i] || ''
+    }))
+  };
+
+  try {
+    const res  = await fetch(`${API}/api/v1/interview/submit/${token}`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      showError(err.detail || 'Submission failed. Please contact HR.');
+      return;
+    }
+
+    const data = await res.json();
+    document.getElementById('final-score').textContent  = Math.round(data.overall_score || 0);
+    document.getElementById('complete-name').textContent = candidateName;
+    showScreen('complete');
+  } catch(e) {
+    showError('Could not submit your interview. Please check your connection and try again.');
+  }
+}
+
+// ── Load voices when available (Chrome loads them async) ─────────────────────
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+</script>
+</body>
+</html>
